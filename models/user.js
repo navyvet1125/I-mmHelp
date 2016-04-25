@@ -1,12 +1,9 @@
 var mongoose = require('mongoose');
-
 var CitySchema = mongoose.Schema({
 	city:String,
 	state: String,
 	country: String
 });
-
-
 var UserSchema = mongoose.Schema({
 	role: {type: String, enum : [ 'helper', 'mover' ], default: 'mover'},
 	first_name: {type: String, required:true},
@@ -33,6 +30,5 @@ var UserSchema = mongoose.Schema({
 	passwordDigest:String,
 	messages: Array
 });
-
 var User = mongoose.model('User', UserSchema);
 module.exports = User;

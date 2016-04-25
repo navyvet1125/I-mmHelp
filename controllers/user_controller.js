@@ -83,13 +83,15 @@ user.login= function(req,res){
 		else{
 			if(bcrypt.compareSync(req.body.password, user.passwordDigest)){
 				login.login(user.id);
-				res.require('/dashboard');
+				res.redirect('/dashboard');
 			}
 		}
 	});
 };
 user.logout= function(req,res){
 	login.logout();
+	res.redirect('/');
 };
 user.signup = function(req,res){};
+
 module.exports = user;
