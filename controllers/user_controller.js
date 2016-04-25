@@ -4,23 +4,29 @@ var bcrypt = require('bcrypt-nodejs');
 
 var user ={};
 user.index = function(req,res){
-	User.find({role:'mover'}, function(err,users){
-		var message ='';
-		users.forEach(function(user){
-			login.login(user.id);
-
-			message += user.id+'<br/>'
-			User.findOne({_id: login.loggedIn()}, function(err,user){
-				if (err){
-					throw err;
-				}
-				else{
-					message+=user.first_name;
-					res.send(message);
-				}
+	if(login.loggedIn()){
+		User.findOne({_id: login.loggedIn()}, function(err,user){
+			var searchRole;
+			if (user.role==='mover') searchRole='helper';
+			else searchRole='mover';
+			User.find({role:searchRole}, function(err,users){
+				var message ='';
+				users.forEach(function(user){
+					message += user.id+'<br/>';
+					User.findOne({_id: login.loggedIn()}, function(err,user){
+						if (err){
+							throw err;
+						}
+						else{
+							message+=user.first_name;
+							res.send(message);
+						}
+					});
+				});
 			});
+
 		});
-	});
+	}
 };
 user.create = function(req,res){
 	var password;
@@ -45,8 +51,9 @@ user.create = function(req,res){
     	religion: req.body.religion,
     	marital_status:req.body.marital_status,
     	passwordDigest: bcrypt.hashSync(password)
-    }, function(err, answers){
-
+    }, function(err, users){
+			login.login(users[0].id);
+			res.redirect('/dashboard');
     	}
 
     	);
@@ -54,24 +61,35 @@ user.create = function(req,res){
 user.new = function(req,res){};
 user.show = function(req,res){
 	User.findOne({email:req.params.email}, function(err,user){
-			message += user.id+'<br/>';
-			User.findOne({_id: login.loggedIn()}, function(err,user){
-				if (err){
-					throw err;
-				}
-				else{
-					message+=user.first_name;
-					res.send(message);
-				}
-			});
-		});
+		if (err){
+			throw err;
+		}
+		else{
+			message += user.email+'<br/>';
+			message += user.first_name+'<br/>';
+			res.send(message);
+		}
 	});
-
 };
+
 user.edit = function(req,res){};
 user.update = function(req,res){};
 user.destroy = function(req,res){};
-user.login= function(req,res){};
-user.logout= function(req,res){};
+user.login= function(req,res){
+	User.findOne({email:req.params.email}, function(err,user){
+		if (err){
+			throw err;
+		}
+		else{
+			if(bcrypt.compareSync(req.body.password, user.passwordDigest)){
+				login.login(user.id);
+				res.require('/dashboard');
+			}
+		}
+	});
+};
+user.logout= function(req,res){
+	login.logout();
+};
 user.signup = function(req,res){};
 module.exports = user;
